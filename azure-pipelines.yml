@@ -1,0 +1,79 @@
+name: mypipeline_$(Date:yyyyMMdd)$(Rev:.r)
+trigger:
+- main
+
+#pool:
+  #name: sharmi
+stages:
+  - stage: First_Stage
+    pool:
+      name: sharmi
+    jobs:
+      - job: RunPowerShellScript
+        steps:
+          - task: PowerShell@2
+            inputs:
+              targetType: 'filePath'
+              filePath: '$(Build.SourcesDirectory)/Scripts/script.ps1'
+              arguments: '-param1 "true"' # Pass parameters if needed
+              #ignoreLASTEXITCODE: true
+              errorActionPreference: 'stop' # This ensures the task fails if the script fails
+            continueOnError: false # This ensures the job stops if the script fails
+  - stage: Second_Stage
+    pool:
+      name: sharmi
+    dependsOn: [First_Stage]
+    jobs:
+      - job: Runpowershelinline
+        steps:
+          - task: Powershell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "This is an inline PowerShell script"
+                $var = "Second Stage"
+                Start-Sleep -Seconds 20
+                Write-Host "The value of var is: $var"
+  - stage: Third_Stage
+    pool:
+      vmImage: ubuntu-latest
+    dependsOn: [First_Stage]
+    jobs:
+      - job: Runpowershelinline
+        steps:
+          - task: Powershell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "This is an inline PowerShell script"
+                $var = "Third Stage"
+                echo "The value of var is: $var"
+  - stage: Fourth_Stage
+    pool:
+      name: sharmi
+    dependsOn: [First_Stage]
+    jobs:
+      - job: Runpowershelinline
+        steps:
+          - task: Powershell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "This is an inline PowerShell script"
+                $var = "Fourth Stage"
+                Start-Sleep -Seconds 10
+                Write-Host "The value of var is: $var"
+  - stage: Fifth_Stage
+    pool:
+      name: sharmi
+    dependsOn: [Fourth_Stage,Third_Stage]
+    jobs:
+      - job: Runpowershelinline
+        steps:
+          - task: Powershell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "This is an inline PowerShell script"
+                $var = "Fourth Stage"
+                Write-Host "The value of var is: $var"
